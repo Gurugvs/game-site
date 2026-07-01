@@ -35,14 +35,21 @@ if (IS_NETLIFY) {
 // Seed helper
 function loadSeedData() {
     try {
-        if (fs.existsSync(SEED_FILE)) {
-            return JSON.parse(fs.readFileSync(SEED_FILE, 'utf8'));
-        }
+        // Use require() to ensure the seed JSON is bundled directly by Netlify / esbuild
+        return require('./public/games.json');
     } catch (e) {
-        console.error('Failed to read seed file:', e);
+        console.error('Failed to require seed file, falling back to fs:', e);
+        try {
+            if (fs.existsSync(SEED_FILE)) {
+                return JSON.parse(fs.readFileSync(SEED_FILE, 'utf8'));
+            }
+        } catch (err) {
+            console.error('Failed to read seed file via fs:', err);
+        }
     }
     return [];
 }
+
 
 // Local filesystem init database
 function initLocalDatabase() {
@@ -156,16 +163,17 @@ function sanitizeGame(g) {
     };
 }
 
-// REST API Endpoints
+// API Router
+const apiRouter = express.Router();
 
 // 1. Get all games
-app.get('/api/games', async (req, res) => {
+apiRouter.get('/games', async (req, res) => {
     const games = await readGames();
     res.json(games);
 });
 
 // 2. Add a new game
-app.post('/api/games', async (req, res) => {
+apiRouter.post('/games', async (req, res) => {
     const newGameData = req.body;
     if (!newGameData.name) {
         return res.status(400).json({ error: 'Game name is required' });
@@ -187,7 +195,7 @@ app.post('/api/games', async (req, res) => {
 });
 
 // 3. Update a game
-app.put('/api/games/:id', async (req, res) => {
+apiRouter.put('/games/:id', async (req, res) => {
     const gameId = parseInt(req.params.id);
     const updatedData = req.body;
     
@@ -211,7 +219,7 @@ app.put('/api/games/:id', async (req, res) => {
 });
 
 // 4. Delete a game
-app.delete('/api/games/:id', async (req, res) => {
+apiRouter.delete('/games/:id', async (req, res) => {
     const gameId = parseInt(req.params.id);
     const games = await readGames();
     const initialLength = games.length;
@@ -229,7 +237,7 @@ app.delete('/api/games/:id', async (req, res) => {
 });
 
 // 5. Reset database to sample seed data
-app.post('/api/games/reset', async (req, res) => {
+apiRouter.post('/games/reset', async (req, res) => {
     const seedData = loadSeedData();
     if (await writeGames(seedData)) {
         res.json(seedData);
@@ -239,7 +247,7 @@ app.post('/api/games/reset', async (req, res) => {
 });
 
 // 6. Wipe database (clear all)
-app.post('/api/games/wipe', async (req, res) => {
+apiRouter.post('/games/wipe', async (req, res) => {
     if (await writeGames([])) {
         res.json({ success: true });
     } else {
@@ -248,7 +256,7 @@ app.post('/api/games/wipe', async (req, res) => {
 });
 
 // 7. Bulk import / overwrite games
-app.post('/api/games/import', async (req, res) => {
+apiRouter.post('/games/import', async (req, res) => {
     const importedGames = req.body;
     if (!Array.isArray(importedGames)) {
         return res.status(400).json({ error: 'Import data must be an array' });
@@ -283,7 +291,7 @@ app.post('/api/games/import', async (req, res) => {
 });
 
 // 7b. Full database restore (replaces all games)
-app.post('/api/games/restore', async (req, res) => {
+apiRouter.post('/games/restore', async (req, res) => {
     const gamesToRestore = req.body;
     if (!Array.isArray(gamesToRestore)) {
         return res.status(400).json({ error: 'Restore data must be an array' });
@@ -299,7 +307,7 @@ app.post('/api/games/restore', async (req, res) => {
 });
 
 // 8. Admin login validation
-app.post('/api/auth/login', (req, res) => {
+apiRouter.post('/auth/login', (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
         res.json({ success: true, isAdmin: true });
@@ -307,6 +315,10 @@ app.post('/api/auth/login', (req, res) => {
         res.status(401).json({ success: false, error: 'Incorrect password' });
     }
 });
+
+// Mount router on standard local prefix and Netlify function redirect prefix
+app.use('/api', apiRouter);
+app.use('/.netlify/functions/api', apiRouter);
 
 // Serve frontend static assets from public folder
 app.use(express.static(path.join(__dirname, 'public')));
