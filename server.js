@@ -29,14 +29,19 @@ const SEED_FILE = path.join(__dirname, 'public', 'games.json');
 const IS_NETLIFY = process.env.NETLIFY === 'true' || !!process.env.NETLIFY_DEV;
 
 let blobStore = null;
-if (IS_NETLIFY) {
-    try {
-        const { getStore } = require('@netlify/blobs');
-        blobStore = getStore('gamevault-store');
-        console.log('Netlify environment detected. Initialized Netlify Blobs Store.');
-    } catch (e) {
-        console.error('Failed to initialize Netlify Blobs. Storage will fallback to seed files.', e);
+async function getBlobStore() {
+    if (blobStore) return blobStore;
+    if (IS_NETLIFY) {
+        try {
+            // Dynamically import ESM package @netlify/blobs inside CommonJS Node context
+            const { getStore } = await import('@netlify/blobs');
+            blobStore = getStore('gamevault-store');
+            console.log('Netlify environment detected. Dynamically loaded Netlify Blobs.');
+        } catch (e) {
+            console.error('Failed to dynamically import @netlify/blobs:', e);
+        }
     }
+    return blobStore;
 }
 
 // Seed helper
@@ -86,18 +91,24 @@ if (!IS_NETLIFY) {
 
 // Unified async read function
 async function readGames() {
-    if (IS_NETLIFY && blobStore) {
-        try {
-            let games = await blobStore.getJSON('games');
-            if (!games) {
-                console.log('Seeding Netlify Blobs with default games list...');
-                const seedData = loadSeedData();
-                await blobStore.setJSON('games', seedData);
-                return seedData;
+    if (IS_NETLIFY) {
+        const store = await getBlobStore();
+        if (store) {
+            try {
+                let games = await store.getJSON('games');
+                if (!games) {
+                    console.log('Seeding Netlify Blobs with default games list...');
+                    const seedData = loadSeedData();
+                    await store.setJSON('games', seedData);
+                    return seedData;
+                }
+                return games;
+            } catch (err) {
+                console.error('Failed to read from Netlify Blobs:', err);
+                return loadSeedData();
             }
-            return games;
-        } catch (err) {
-            console.error('Failed to read from Netlify Blobs:', err);
+        } else {
+            console.warn('Netlify Blobs Store not available. Using seed data fallback.');
             return loadSeedData();
         }
     } else {
@@ -114,12 +125,18 @@ async function readGames() {
 
 // Unified async write function
 async function writeGames(games) {
-    if (IS_NETLIFY && blobStore) {
-        try {
-            await blobStore.setJSON('games', games);
-            return true;
-        } catch (err) {
-            console.error('Failed to write to Netlify Blobs:', err);
+    if (IS_NETLIFY) {
+        const store = await getBlobStore();
+        if (store) {
+            try {
+                await store.setJSON('games', games);
+                return true;
+            } catch (err) {
+                console.error('Failed to write to Netlify Blobs:', err);
+                return false;
+            }
+        } else {
+            console.warn('Netlify Blobs Store not available, cannot write.');
             return false;
         }
     } else {
