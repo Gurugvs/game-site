@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameVault – Ultimate Game Management System</title>
+    <meta name="description" content="Manage your game library, track playtimes, analyze statistics, and organize your gaming collection in a gorgeous personal dashboard.">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sticky Header -->
+        <header class="main-header glass">
+            <div class="header-left">
+                <button id="btn-hamburger" class="hamburger-btn" aria-label="Toggle Navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a class="logo" id="logo-home">
+                    <i class="fas fa-gamepad"></i> Game<span>Vault</span>
+                </a>
+            </div>
+            
+            <div class="header-right">
+                <!-- Search Bar -->
+                <div class="search-container" id="header-search-container">
+                    <input type="text" id="global-search" class="search-input" placeholder="Search games...">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <!-- Quick Actions -->
+                <button id="btn-header-search" class="btn-header hamburger-btn" style="display: none;" title="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button id="btn-toggle-filters" class="btn-header" title="Toggle Filters">
+                    <i class="fas fa-filter"></i> <span>Filter</span>
+                </button>
+                <button id="btn-export-excel" class="btn-header" title="Export to Excel">
+                    <i class="fas fa-file-excel"></i> <span>Export</span>
+                </button>
+                <button id="btn-open-import" class="btn-header admin-only" title="Import Library">
+                    <i class="fas fa-file-import"></i> <span>Import</span>
+                </button>
+                <button id="btn-add-game" class="btn-header btn-accent admin-only" title="Add New Game">
+                    <i class="fas fa-plus"></i> <span>Add Game</span>
+                </button>
+                <button id="btn-header-settings" class="btn-header" title="Settings" data-section-trigger="settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar Navigation -->
+        <aside class="main-sidebar" id="sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-section-target="dashboard">
+                    <a class="menu-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="games">
+                    <a class="menu-link">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Games</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="categories">
+                    <a class="menu-link">
+                        <i class="fas fa-tags"></i>
+                        <span>Categories</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="platforms">
+                    <a class="menu-link">
+                        <i class="fas fa-desktop"></i>
+                        <span>Platforms</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="favorites">
+                    <a class="menu-link">
+                        <i class="fas fa-heart"></i>
+                        <span>Favorites</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="completed">
+                    <a class="menu-link">
+                        <i class="fas fa-trophy"></i>
+                        <span>Completed</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="wishlist">
+                    <a class="menu-link">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Wishlist</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="installed">
+                    <a class="menu-link">
+                        <i class="fas fa-download"></i>
+                        <span>Installed</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="analytics">
+                    <a class="menu-link">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-section-target="settings">
+                    <a class="menu-link">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-item-admin" data-section-target="admin">
+                    <a class="menu-link">
+                        <i class="fas fa-lock" id="sidebar-admin-icon"></i>
+                        <span id="sidebar-admin-text">Admin Login</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <p>&copy; 2026 GameVault</p>
+                <p>v1.0.0</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- SECTION: DASHBOARD -->
+            <section id="section-dashboard" class="content-section active">
+                <!-- Large Hero Banner -->
+                <div class="hero-banner" id="dashboard-hero">
+                    <div class="hero-overlay"></div>
+                    <div class="hero-body">
+                        <span class="hero-badge" id="hero-badge">Featured Game</span>
+                        <h1 class="hero-title" id="hero-title">Loading...</h1>
+                        <p class="hero-desc" id="hero-desc">Manage your extensive library, track statistics, and play your favorite games.</p>
+                        <button class="hero-action-btn" id="hero-action-btn">
+                            <i class="fas fa-info-circle"></i> View Details
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-total-games">0</span>
+                            <span class="stat-label">Total Games</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-installed">0</span>
+                            <span class="stat-label">Installed</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-playing">0</span>
+                            <span class="stat-label">Playing</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-completed">0</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-wishlist">0</span>
+                            <span class="stat-label">Wishlist</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-favorites">0</span>
+                            <span class="stat-label">Favorites</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-playtime">0h</span>
+                            <span class="stat-label">Total Playtime</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="stat-avg-rating">0.0</span>
+                            <span class="stat-label">Average Rating</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Rows (Carousels) -->
+                <div class="dashboard-row">
+                    <div class="row-section">
+                        <div class="row-section-header">
+                            <h3 class="row-title">Recently Added</h3>
+                            <a class="row-view-all" data-section-trigger="games">View All</a>
+                        </div>
+                        <div class="horizontal-scroll-container" id="carousel-recently-added">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="row-section">
+                        <div class="row-section-header">
+                            <h3 class="row-title">Continue Playing</h3>
+                            <a class="row-view-all" data-section-trigger="games">View All</a>
+                        </div>
+                        <div class="horizontal-scroll-container" id="carousel-continue-playing">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="row-section">
+                        <div class="row-section-header">
+                            <h3 class="row-title">Favorite Games</h3>
+                            <a class="row-view-all" data-section-trigger="favorites">View All</a>
+                        </div>
+                        <div class="horizontal-scroll-container" id="carousel-favorites">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: GAMES EXPLORER -->
+            <section id="section-games" class="content-section">
+                <div class="section-header-bar">
+                    <div class="section-title-wrapper">
+                        <h2 id="games-page-title">Games Library</h2>
+                        <p id="games-page-subtitle">Browse, search, and manage your games collection.</p>
+                    </div>
+                    
+                    <div class="controls-bar">
+                        <button class="filter-toggle-btn" id="btn-filter-panel">
+                            <i class="fas fa-sliders-h"></i> Filters
+                        </button>
+                        
+                        <div class="sort-container">
+                            <select id="select-sort" class="sort-select">
+                                <option value="name-asc">A-Z</option>
+                                <option value="name-desc">Z-A</option>
+                                <option value="rating-desc">Highest Rating</option>
+                                <option value="rating-asc">Lowest Rating</option>
+                                <option value="release-desc">Newest Release</option>
+                                <option value="release-asc">Oldest Release</option>
+                                <option value="added-desc">Recently Added</option>
+                                <option value="playtime-desc">Most Played</option>
+                                <option value="size-desc">Largest Size</option>
+                            </select>
+                        </div>
+
+                        <div class="view-toggle">
+                            <button class="view-btn active" id="btn-view-grid" title="Grid View">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button class="view-btn" id="btn-view-list" title="List View">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Filter Panel (Collapsible) -->
+                <div class="filter-panel" id="filter-panel">
+                    <div class="filter-panel-inner glass">
+                        <div class="filter-group">
+                            <label for="filter-genre">Genre</label>
+                            <select id="filter-genre" class="filter-select">
+                                <option value="">All Genres</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-platform">Platform</label>
+                            <select id="filter-platform" class="filter-select">
+                                <option value="">All Platforms</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-developer">Developer</label>
+                            <select id="filter-developer" class="filter-select">
+                                <option value="">All Developers</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-publisher">Publisher</label>
+                            <select id="filter-publisher" class="filter-select">
+                                <option value="">All Publishers</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-status">Status</label>
+                            <select id="filter-status" class="filter-select">
+                                <option value="">All Statuses</option>
+                                <option value="Wishlist">Wishlist</option>
+                                <option value="Backlog">Backlog</option>
+                                <option value="Playing">Playing</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-installed">Installed</label>
+                            <select id="filter-installed" class="filter-select">
+                                <option value="">All</option>
+                                <option value="true">Installed Only</option>
+                                <option value="false">Not Installed Only</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-favorite">Favorite</label>
+                            <select id="filter-favorite" class="filter-select">
+                                <option value="">All</option>
+                                <option value="true">Favorites Only</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-rating">Min Rating</label>
+                            <select id="filter-rating" class="filter-select">
+                                <option value="">Any</option>
+                                <option value="4.5">4.5+ Stars</option>
+                                <option value="4.0">4.0+ Stars</option>
+                                <option value="3.0">3.0+ Stars</option>
+                                <option value="2.0">2.0+ Stars</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-year">Release Year</label>
+                            <select id="filter-year" class="filter-select">
+                                <option value="">All Years</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-engine">Game Engine</label>
+                            <select id="filter-engine" class="filter-select">
+                                <option value="">All Engines</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Filters Row -->
+                <div class="active-filters-row hidden" id="active-filters-row">
+                    <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;">Active Filters:</span>
+                    <div id="active-filters-tags" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                        <!-- Filter tags injected here -->
+                    </div>
+                    <button class="btn-clear-filters" id="btn-clear-all-filters">Clear All</button>
+                </div>
+
+                <!-- Games Grid -->
+                <div class="games-grid" id="games-grid">
+                    <!-- Cards injected dynamically -->
+                </div>
+            </section>
+
+            <!-- SECTION: CATEGORIES -->
+            <section id="section-categories" class="content-section">
+                <div class="section-title-wrapper" style="margin-bottom: 2rem;">
+                    <h2>Library Categories</h2>
+                    <p>Browse your library grouped by genres and tags.</p>
+                </div>
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Categories card list -->
+                </div>
+            </section>
+
+            <!-- SECTION: PLATFORMS -->
+            <section id="section-platforms" class="content-section">
+                <div class="section-title-wrapper" style="margin-bottom: 2rem;">
+                    <h2>Gaming Platforms</h2>
+                    <p>Browse your games by launcher, console, or operating system.</p>
+                </div>
+                <div class="platforms-grid" id="platforms-grid">
+                    <!-- Platforms card list -->
+                </div>
+            </section>
+
+            <!-- SECTION: ANALYTICS -->
+            <section id="section-analytics" class="content-section">
+                <div class="section-title-wrapper" style="margin-bottom: 2rem;">
+                    <h2>Library Analytics</h2>
+                    <p>Visual breakdown and statistics of your collection.</p>
+                </div>
+                <div class="analytics-grid">
+                    <div class="chart-card glass">
+                        <h3>Games by Genre</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-genre"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card glass">
+                        <h3>Games by Platform</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-platform"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass">
+                        <h3>Rating Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-rating"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass">
+                        <h3>Completion Status</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-status"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass">
+                        <h3>Playtime Distribution (Hours)</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-playtime"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass">
+                        <h3>Installed vs Uninstalled</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-installed"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: SETTINGS -->
+            <section id="section-settings" class="content-section">
+                <div class="section-title-wrapper" style="margin-bottom: 2rem;">
+                    <h2>Application Settings</h2>
+                    <p>Configure preferences, manage databases, and backup your library.</p>
+                </div>
+                
+                <div class="settings-grid">
+                    <!-- Preferences Card -->
+                    <div class="settings-card glass">
+                        <h3><i class="fas fa-sliders-h"></i> Preferences</h3>
+                        <div class="form-group">
+                            <label>Default Library View</label>
+                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                <button class="btn-settings" id="settings-view-grid" style="border-color: var(--accent); color: var(--accent);">
+                                    <i class="fas fa-th"></i> Grid View
+                                </button>
+                                <button class="btn-settings" id="settings-view-list">
+                                    <i class="fas fa-list"></i> List View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Restore Card -->
+                    <div class="settings-card glass">
+                        <h3><i class="fas fa-database"></i> Backup & Database</h3>
+                        <div class="settings-action-row">
+                            <button class="btn-settings" id="settings-backup-data">
+                                <i class="fas fa-download"></i> Backup Data (JSON)
+                            </button>
+                            <button class="btn-settings admin-only" id="settings-btn-restore-trigger">
+                                <i class="fas fa-upload"></i> Restore Data (JSON)
+                            </button>
+                            <input type="file" id="settings-restore-file" style="display: none;" accept=".json">
+                            
+                            <button class="btn-settings btn-settings-danger admin-only" id="settings-reset-db">
+                                <i class="fas fa-redo"></i> Reset to Default Sample Data (50 Games)
+                            </button>
+                            <button class="btn-settings btn-settings-danger admin-only" id="settings-clear-db">
+                                <i class="fas fa-trash-alt"></i> Wipe Database (Clear All)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Import / Export Card -->
+                    <div class="settings-card glass">
+                        <h3><i class="fas fa-exchange-alt"></i> Import & Export</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Export or import your game database in various formats. Excel requires SheetJS.</p>
+                        <div class="settings-action-row">
+                            <button class="btn-settings" id="settings-export-excel">
+                                <i class="fas fa-file-excel"></i> Export Library to Excel (.xlsx)
+                            </button>
+                            <button class="btn-settings" id="settings-export-csv">
+                                <i class="fas fa-file-csv"></i> Export Library to CSV (.csv)
+                            </button>
+                            <button class="btn-settings" id="settings-export-json">
+                                <i class="fas fa-file-code"></i> Export Library to JSON (.json)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- About Card -->
+                    <div class="settings-card glass">
+                        <h3><i class="fas fa-info-circle"></i> About GameVault</h3>
+                        <div class="about-logo">
+                            <i class="fas fa-gamepad"></i> Game<span>Vault</span>
+                        </div>
+                        <div class="about-version">Version 1.0.0</div>
+                        <p class="about-desc">
+                            GameVault is a premium game manager designed for desktop gaming enthusiasts. Track your playtimes, catalog your purchases, organize your backlogs, and explore detailed statistics of your collection.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: ADMIN PANEL -->
+            <section id="section-admin" class="content-section">
+                <div class="section-title-wrapper" style="margin-bottom: 2rem;">
+                    <h2>Admin Control Panel</h2>
+                    <p>Manage catalog permissions, view system stats, and perform advanced database operations.</p>
+                </div>
+                <div class="settings-grid">
+                    <!-- Admin Status Card -->
+                    <div class="settings-card glass">
+                        <h3><i class="fas fa-user-shield"></i> Admin Session</h3>
+                        <p>You are currently logged in as <strong>Administrator</strong>. You have full read/write access to the database.</p>
+                        <button class="btn-settings btn-settings-danger" id="btn-admin-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout Administrator
+                        </button>
+                     </div>
+                     <!-- Quick Database Summary -->
+                     <div class="settings-card glass">
+                         <h3><i class="fas fa-info-circle"></i> Library Health</h3>
+                         <div class="metadata-card-list">
+                             <div class="metadata-card-item">
+                                 <span class="label">Total Games</span>
+                                 <span class="value" id="admin-total-games">0</span>
+                             </div>
+                             <div class="metadata-card-item">
+                                 <span class="label">Total Playtime</span>
+                                 <span class="value" id="admin-total-playtime">0 hours</span>
+                             </div>
+                             <div class="metadata-card-item">
+                                 <span class="label">Total Size</span>
+                                 <span class="value" id="admin-total-size">0 GB</span>
+                             </div>
+                         </div>
+                     </div>
+                </div>
+            </section>
+
+            <!-- SECTION: GAME DETAILS PAGE -->
+            <section id="section-game-details" class="content-section">
+                <button class="details-back-btn" id="btn-details-back">
+                    <i class="fas fa-arrow-left"></i> Back to Library
+                </button>
+
+                <!-- Full Width Details Banner -->
+                <div class="details-hero" id="details-hero-banner">
+                    <div class="details-hero-overlay"></div>
+                    <div class="details-hero-content">
+                        <div class="details-cover-wrapper">
+                            <img src="" alt="" class="details-cover-img" id="details-cover">
+                        </div>
+                        <div class="details-hero-info">
+                            <div class="details-meta-badges" id="details-badges">
+                                <!-- Dynamic badges -->
+                            </div>
+                            <h1 class="details-title" id="details-title">Game Title</h1>
+                            
+                            <div class="details-action-buttons">
+                                <button class="btn-details-primary" id="btn-details-play-launch">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                                <button class="btn-details-action fav" id="btn-details-fav" title="Favorite Toggle">
+                                    <i class="fas fa-heart"></i> Favorite
+                                </button>
+                                <button class="btn-details-action inst" id="btn-details-inst" title="Installed Toggle">
+                                    <i class="fas fa-download"></i> Installed
+                                </button>
+                                <button class="btn-details-action comp" id="btn-details-comp" title="Completed Toggle">
+                                    <i class="fas fa-trophy"></i> Completed
+                                </button>
+                                <button class="btn-details-action admin-only" id="btn-details-edit" title="Edit Game">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn-details-action btn-card-danger admin-only" id="btn-details-delete" title="Delete Game">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Grid Layout -->
+                <div class="details-body-layout">
+                    <!-- Main Panel (Left) -->
+                    <div class="details-main-panel">
+                        <!-- Description/Story -->
+                        <div class="details-card glass">
+                            <h3 class="details-card-title"><i class="fas fa-align-left"></i> Description</h3>
+                            <div class="details-story" id="details-description">No description available.</div>
+                        </div>
+
+                        <!-- System Requirements -->
+                        <div class="details-card glass">
+                            <h3 class="details-card-title"><i class="fas fa-laptop-code"></i> System Requirements</h3>
+                            <div class="requirements-grid">
+                                <div class="requirements-box">
+                                    <h5>Minimum Requirements</h5>
+                                    <div class="req-item"><strong>OS:</strong> <span id="details-min-os">-</span></div>
+                                    <div class="req-item"><strong>CPU:</strong> <span id="details-min-cpu">-</span></div>
+                                    <div class="req-item"><strong>RAM:</strong> <span id="details-min-ram">-</span></div>
+                                    <div class="req-item"><strong>GPU:</strong> <span id="details-min-gpu">-</span></div>
+                                    <div class="req-item"><strong>Storage:</strong> <span id="details-min-storage">-</span></div>
+                                </div>
+                                <div class="requirements-box">
+                                    <h5>Recommended Requirements</h5>
+                                    <div class="req-item"><strong>OS:</strong> <span id="details-rec-os">-</span></div>
+                                    <div class="req-item"><strong>CPU:</strong> <span id="details-rec-cpu">-</span></div>
+                                    <div class="req-item"><strong>RAM:</strong> <span id="details-rec-ram">-</span></div>
+                                    <div class="req-item"><strong>GPU:</strong> <span id="details-rec-gpu">-</span></div>
+                                    <div class="req-item"><strong>Storage:</strong> <span id="details-rec-storage">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Media Gallery / Trailer -->
+                        <div class="details-card glass" id="details-media-card">
+                            <h3 class="details-card-title"><i class="fas fa-images"></i> Media Gallery & Trailer</h3>
+                            <div class="media-container">
+                                <div class="trailer-iframe-wrapper" id="details-trailer-container">
+                                    <!-- Embedded YouTube Video -->
+                                    <iframe id="details-trailer" src="" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes -->
+                        <div class="details-card glass">
+                            <h3 class="details-card-title"><i class="fas fa-sticky-note"></i> Personal Notes</h3>
+                            <div class="details-notes" id="details-notes">No personal notes. Click Edit to add some.</div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Panel (Right) -->
+                    <div class="details-side-panel">
+                        <div class="details-card glass">
+                            <h3 class="details-card-title"><i class="fas fa-info-circle"></i> Information</h3>
+                            
+                            <div class="metadata-card-list">
+                                <div class="metadata-card-item">
+                                    <span class="label">Genre</span>
+                                    <span class="value" id="details-genre">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Sub Genre</span>
+                                    <span class="value" id="details-subgenre">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Platform</span>
+                                    <span class="value" id="details-platform">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Developer</span>
+                                    <span class="value" id="details-developer">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Publisher</span>
+                                    <span class="value" id="details-publisher">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Release Date</span>
+                                    <span class="value" id="details-release">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Game Engine</span>
+                                    <span class="value" id="details-engine">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Version</span>
+                                    <span class="value" id="details-version">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Language</span>
+                                    <span class="value" id="details-language">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Game Size</span>
+                                    <span class="value" id="details-size">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Rating</span>
+                                    <span class="value" id="details-rating">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Playtime</span>
+                                    <span class="value" id="details-playtime">-</span>
+                                </div>
+                                <div class="metadata-card-item">
+                                    <span class="label">Status</span>
+                                    <span class="value" id="details-status">-</span>
+                                </div>
+                                <div class="metadata-card-item" id="details-store-row">
+                                    <span class="label">Store</span>
+                                    <span class="value" id="details-store">-</span>
+                                </div>
+                                <div class="metadata-card-item" id="details-download-row">
+                                    <span class="label">Install Link</span>
+                                    <span class="value"><a href="" target="_blank" id="details-download" style="color: var(--accent); text-decoration: none;">Download / Install <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i></a></span>
+                                </div>
+                                <div class="metadata-card-item" id="details-website-row">
+                                    <span class="label">Website</span>
+                                    <span class="value"><a href="" target="_blank" id="details-website" style="color: var(--accent); text-decoration: none;">Visit <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i></a></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags Card -->
+                        <div class="details-card glass">
+                            <h3 class="details-card-title"><i class="fas fa-tags"></i> Tags</h3>
+                            <div class="tags-container" id="details-tags">
+                                <!-- Tags injected -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: ADD / EDIT GAME -->
+    <div class="modal-backdrop" id="modal-game">
+        <div class="modal-container glass">
+            <div class="modal-header">
+                <h3 id="modal-game-title">Add New Game</h3>
+                <button class="modal-close-btn" id="btn-close-game-modal">&times;</button>
+            </div>
+            <form id="form-game">
+                <input type="hidden" id="form-game-id">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        
+                        <!-- General Info -->
+                        <div class="form-group form-group-full">
+                            <label for="form-name">Game Name *</label>
+                            <input type="text" id="form-name" class="form-input" required placeholder="e.g. Elden Ring">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-cover-url">Cover Image URL</label>
+                            <input type="url" id="form-cover-url" class="form-input" placeholder="https://example.com/cover.jpg">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-banner-url">Banner Image URL</label>
+                            <input type="url" id="form-banner-url" class="form-input" placeholder="https://example.com/banner.jpg">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-genre">Genre *</label>
+                            <select id="form-genre" class="form-select" required>
+                                <option value="">Select Genre</option>
+                                <!-- Categories injected here -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-subgenre">Sub Genre</label>
+                            <input type="text" id="form-subgenre" class="form-input" placeholder="e.g. Soulslike, Open World">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-platform">Platform *</label>
+                            <select id="form-platform" class="form-select" required>
+                                <option value="">Select Platform</option>
+                                <!-- Platforms injected here -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-store">Store *</label>
+                            <select id="form-store" class="form-select" required>
+                                <option value="">Select Store</option>
+                                <option value="Steam">Steam</option>
+                                <option value="Epic Games">Epic Games Store</option>
+                                <option value="GOG">GOG</option>
+                                <option value="PlayStation">PlayStation Store</option>
+                                <option value="Xbox">Xbox Store</option>
+                                <option value="Nintendo">Nintendo eShop</option>
+                                <option value="Ubisoft">Ubisoft Connect</option>
+                                <option value="EA App">EA App</option>
+                                <option value="itch.io">itch.io</option>
+                                <option value="Battle.net">Battle.net</option>
+                                <option value="Rockstar">Rockstar Games Launcher</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-developer">Developer</label>
+                            <input type="text" id="form-developer" class="form-input" placeholder="e.g. FromSoftware">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-publisher">Publisher</label>
+                            <input type="text" id="form-publisher" class="form-input" placeholder="e.g. Bandai Namco">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-release-date">Release Date</label>
+                            <input type="date" id="form-release-date" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-engine">Game Engine</label>
+                            <input type="text" id="form-engine" class="form-input" placeholder="e.g. Unreal Engine 5, Unity">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-version">Version</label>
+                            <input type="text" id="form-version" class="form-input" placeholder="e.g. v1.12.3">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-language">Language</label>
+                            <input type="text" id="form-language" class="form-input" placeholder="e.g. English, Multilingual">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-size">Game Size (GB)</label>
+                            <input type="number" id="form-size" class="form-input" step="0.1" min="0" placeholder="e.g. 60.5">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-rating">Rating (0 - 5 Stars)</label>
+                            <input type="number" id="form-rating" class="form-input" step="0.1" min="0" max="5" placeholder="e.g. 4.8">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-playtime">Play Time (Hours)</label>
+                            <input type="number" id="form-playtime" class="form-input" min="0" placeholder="e.g. 120">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-status">Status *</label>
+                            <select id="form-status" class="form-select" required>
+                                <option value="Wishlist">Wishlist</option>
+                                <option value="Backlog">Backlog</option>
+                                <option value="Playing">Playing</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+
+                        <!-- Links -->
+                        <div class="form-group">
+                            <label for="form-website-url">Website URL</label>
+                            <input type="url" id="form-website-url" class="form-input" placeholder="https://eldenring.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-trailer-url">YouTube Trailer URL</label>
+                            <input type="url" id="form-trailer-url" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-download-url">Download / Install Link</label>
+                            <input type="text" id="form-download-url" class="form-input" placeholder="e.g. steam://run/1245620 or https://...">
+                        </div>
+
+                        <!-- System Requirements -->
+                        <div class="form-group form-group-full" style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Minimum System Requirements</h4>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="form-min-os">OS</label>
+                            <input type="text" id="form-min-os" class="form-input" placeholder="Windows 10">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-min-cpu">Processor</label>
+                            <input type="text" id="form-min-cpu" class="form-input" placeholder="Intel Core i5">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-min-ram">Memory</label>
+                            <input type="text" id="form-min-ram" class="form-input" placeholder="12 GB RAM">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-min-gpu">Graphics</label>
+                            <input type="text" id="form-min-gpu" class="form-input" placeholder="Nvidia GTX 1060">
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label for="form-min-storage">Storage</label>
+                            <input type="text" id="form-min-storage" class="form-input" placeholder="60 GB available space">
+                        </div>
+
+                        <div class="form-group form-group-full" style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Recommended System Requirements</h4>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="form-rec-os">OS</label>
+                            <input type="text" id="form-rec-os" class="form-input" placeholder="Windows 10/11">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-rec-cpu">Processor</label>
+                            <input type="text" id="form-rec-cpu" class="form-input" placeholder="Intel Core i7 / Ryzen 5">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-rec-ram">Memory</label>
+                            <input type="text" id="form-rec-ram" class="form-input" placeholder="16 GB RAM">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-rec-gpu">Graphics</label>
+                            <input type="text" id="form-rec-gpu" class="form-input" placeholder="Nvidia RTX 3060">
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label for="form-rec-storage">Storage</label>
+                            <input type="text" id="form-rec-storage" class="form-input" placeholder="60 GB SSD space">
+                        </div>
+
+                        <!-- Checkboxes -->
+                        <div class="form-checkbox-row" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+                            <label class="form-checkbox-label">
+                                <input type="checkbox" id="form-favorite">
+                                <span>Add to Favorites</span>
+                            </label>
+                            <label class="form-checkbox-label">
+                                <input type="checkbox" id="form-installed">
+                                <span>Currently Installed</span>
+                            </label>
+                            <label class="form-checkbox-label">
+                                <input type="checkbox" id="form-completed">
+                                <span>Mark as Completed</span>
+                            </label>
+                        </div>
+
+                        <!-- Notes & Description -->
+                        <div class="form-group form-group-full">
+                            <label for="form-description">Game Description</label>
+                            <textarea id="form-description" class="form-textarea" placeholder="Enter game overview, story, or gameplay details..."></textarea>
+                        </div>
+
+                        <div class="form-group form-group-full">
+                            <label for="form-notes">Personal Notes / Thoughts</label>
+                            <textarea id="form-notes" class="form-textarea" placeholder="Enter your review, keys, cheats, backlog status notes..."></textarea>
+                        </div>
+
+                        <div class="form-group form-group-full">
+                            <label for="form-tags">Tags (comma-separated)</label>
+                            <input type="text" id="form-tags" class="form-input" placeholder="e.g. Goty, Co-op, Difficult, Story Rich">
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-modal-cancel" id="btn-cancel-game-modal">Cancel</button>
+                    <button type="submit" class="btn-modal btn-modal-save">Save Game</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPORT DATA -->
+    <div class="modal-backdrop" id="modal-import">
+        <div class="modal-container glass" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Import Games Database</h3>
+                <button class="modal-close-btn" id="btn-close-import-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="import-options-grid">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; text-align: center;">
+                        Upload a GameVault backup file or library spreadsheet. Supported formats: <strong>JSON, Excel (.xlsx, .xls), CSV</strong>.
+                    </p>
+                    
+                    <div class="import-dropzone" id="import-dropzone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h4>Drag & Drop file here</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">or click to browse from computer</p>
+                        <input type="file" id="import-file-input" class="import-file-input" accept=".json,.csv,.xlsx,.xls">
+                    </div>
+                    
+                    <div id="import-preview-container" class="hidden" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+                        <h4 style="font-size: 0.9rem; margin-bottom: 8px;"><i class="fas fa-file-alt"></i> File Selected:</h4>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; background: rgba(255,255,255,0.02); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            <span id="import-file-name" style="font-weight: 600;">-</span>
+                            <span id="import-file-size">-</span>
+                        </div>
+                        <div id="import-games-count" style="margin-top: 10px; font-size: 0.85rem; color: var(--accent); font-weight: 600;">
+                            <!-- Games count preview -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-cancel" id="btn-cancel-import-modal">Cancel</button>
+                <button class="btn-modal btn-modal-save" id="btn-submit-import" disabled>Start Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN LOGIN -->
+    <div class="modal-backdrop" id="modal-admin-login">
+        <div class="modal-container glass" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Admin Authentication</h3>
+                <button class="modal-close-btn" id="btn-close-admin-modal">&times;</button>
+            </div>
+            <form id="form-admin-login">
+                <div class="modal-body">
+                    <div class="form-grid" style="grid-template-columns: 1fr;">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; text-align: center; margin-bottom: 10px;">
+                            Please enter the administrator password to unlock database management features (Default: <strong>admin</strong>).
+                        </p>
+                        <div class="form-group">
+                            <label for="admin-password">Password</label>
+                            <input type="password" id="admin-password" class="form-input" required placeholder="Enter password...">
+                        </div>
+                        <div id="admin-login-error" style="color: #FF4500; font-size: 0.8rem; font-weight: 500; text-align: center;" class="hidden">
+                            Incorrect password. Please try again.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-modal-cancel" id="btn-cancel-admin-modal">Cancel</button>
+                    <button type="submit" class="btn-modal btn-modal-save">Authenticate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- External Libraries (CDNs) -->
+    <!-- SheetJS for Excel Import/Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js for Interactive Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Main Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
