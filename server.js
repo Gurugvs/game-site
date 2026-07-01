@@ -18,8 +18,34 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'games.json');
 const SEED_FILE = path.join(__dirname, 'public', 'games.json');
 
-// Ensure data folder and games.json exist
-function initDatabase() {
+// Detect Netlify environment
+const IS_NETLIFY = process.env.NETLIFY === 'true' || !!process.env.NETLIFY_DEV;
+
+let blobStore = null;
+if (IS_NETLIFY) {
+    try {
+        const { getStore } = require('@netlify/blobs');
+        blobStore = getStore('gamevault-store');
+        console.log('Netlify environment detected. Initialized Netlify Blobs Store.');
+    } catch (e) {
+        console.error('Failed to initialize Netlify Blobs. Storage will fallback to seed files.', e);
+    }
+}
+
+// Seed helper
+function loadSeedData() {
+    try {
+        if (fs.existsSync(SEED_FILE)) {
+            return JSON.parse(fs.readFileSync(SEED_FILE, 'utf8'));
+        }
+    } catch (e) {
+        console.error('Failed to read seed file:', e);
+    }
+    return [];
+}
+
+// Local filesystem init database
+function initLocalDatabase() {
     if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
     }
@@ -40,27 +66,57 @@ function initDatabase() {
     }
 }
 
-initDatabase();
+if (!IS_NETLIFY) {
+    initLocalDatabase();
+}
 
-// Helper to read games
-function readGames() {
-    try {
-        const data = fs.readFileSync(DATA_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error('Failed to read database file, returning empty array:', err);
-        return [];
+// Unified async read function
+async function readGames() {
+    if (IS_NETLIFY && blobStore) {
+        try {
+            let games = await blobStore.getJSON('games');
+            if (!games) {
+                console.log('Seeding Netlify Blobs with default games list...');
+                const seedData = loadSeedData();
+                await blobStore.setJSON('games', seedData);
+                return seedData;
+            }
+            return games;
+        } catch (err) {
+            console.error('Failed to read from Netlify Blobs:', err);
+            return loadSeedData();
+        }
+    } else {
+        // Local file read
+        try {
+            const data = fs.readFileSync(DATA_FILE, 'utf8');
+            return JSON.parse(data);
+        } catch (err) {
+            console.error('Failed to read database file, returning seed data:', err);
+            return loadSeedData();
+        }
     }
 }
 
-// Helper to write games
-function writeGames(games) {
-    try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(games, null, 4), 'utf8');
-        return true;
-    } catch (err) {
-        console.error('Failed to write database file:', err);
-        return false;
+// Unified async write function
+async function writeGames(games) {
+    if (IS_NETLIFY && blobStore) {
+        try {
+            await blobStore.setJSON('games', games);
+            return true;
+        } catch (err) {
+            console.error('Failed to write to Netlify Blobs:', err);
+            return false;
+        }
+    } else {
+        // Local file write
+        try {
+            fs.writeFileSync(DATA_FILE, JSON.stringify(games, null, 4), 'utf8');
+            return true;
+        } catch (err) {
+            console.error('Failed to write database file:', err);
+            return false;
+        }
     }
 }
 
@@ -103,40 +159,39 @@ function sanitizeGame(g) {
 // REST API Endpoints
 
 // 1. Get all games
-app.get('/api/games', (req, res) => {
-    const games = readGames();
+app.get('/api/games', async (req, res) => {
+    const games = await readGames();
     res.json(games);
 });
 
 // 2. Add a new game
-app.post('/api/games', (req, res) => {
+app.post('/api/games', async (req, res) => {
     const newGameData = req.body;
     if (!newGameData.name) {
         return res.status(400).json({ error: 'Game name is required' });
     }
     
-    const games = readGames();
+    const games = await readGames();
     const sanitized = sanitizeGame(newGameData);
     
-    // Explicitly set ID as unique timestamp
     sanitized.id = Date.now() + Math.floor(Math.random() * 100);
     sanitized.addedAt = new Date().toISOString();
     
     games.push(sanitized);
     
-    if (writeGames(games)) {
+    if (await writeGames(games)) {
         res.status(201).json(sanitized);
     } else {
-        res.status(500).json({ error: 'Failed to write database file' });
+        res.status(500).json({ error: 'Failed to write data' });
     }
 });
 
 // 3. Update a game
-app.put('/api/games/:id', (req, res) => {
+app.put('/api/games/:id', async (req, res) => {
     const gameId = parseInt(req.params.id);
     const updatedData = req.body;
     
-    const games = readGames();
+    const games = await readGames();
     const index = games.findIndex(g => g.id === gameId);
     
     if (index === -1) {
@@ -148,17 +203,17 @@ app.put('/api/games/:id', (req, res) => {
     
     games[index] = sanitized;
     
-    if (writeGames(games)) {
+    if (await writeGames(games)) {
         res.json(sanitized);
     } else {
-        res.status(500).json({ error: 'Failed to write database file' });
+        res.status(500).json({ error: 'Failed to write data' });
     }
 });
 
 // 4. Delete a game
-app.delete('/api/games/:id', (req, res) => {
+app.delete('/api/games/:id', async (req, res) => {
     const gameId = parseInt(req.params.id);
-    const games = readGames();
+    const games = await readGames();
     const initialLength = games.length;
     const filtered = games.filter(g => g.id !== gameId);
     
@@ -166,32 +221,26 @@ app.delete('/api/games/:id', (req, res) => {
         return res.status(404).json({ error: 'Game not found' });
     }
     
-    if (writeGames(filtered)) {
+    if (await writeGames(filtered)) {
         res.json({ success: true, deletedId: gameId });
     } else {
-        res.status(500).json({ error: 'Failed to write database file' });
+        res.status(500).json({ error: 'Failed to write data' });
     }
 });
 
 // 5. Reset database to sample seed data
-app.post('/api/games/reset', (req, res) => {
-    if (fs.existsSync(SEED_FILE)) {
-        try {
-            fs.copyFileSync(SEED_FILE, DATA_FILE);
-            const games = readGames();
-            res.json(games);
-        } catch (err) {
-            console.error('Failed to copy seed file during reset:', err);
-            res.status(500).json({ error: 'Failed to copy seed file during database reset' });
-        }
+app.post('/api/games/reset', async (req, res) => {
+    const seedData = loadSeedData();
+    if (await writeGames(seedData)) {
+        res.json(seedData);
     } else {
-        res.status(404).json({ error: 'Seed file not found' });
+        res.status(500).json({ error: 'Failed to reset database' });
     }
 });
 
 // 6. Wipe database (clear all)
-app.post('/api/games/wipe', (req, res) => {
-    if (writeGames([])) {
+app.post('/api/games/wipe', async (req, res) => {
+    if (await writeGames([])) {
         res.json({ success: true });
     } else {
         res.status(500).json({ error: 'Failed to wipe database' });
@@ -199,24 +248,23 @@ app.post('/api/games/wipe', (req, res) => {
 });
 
 // 7. Bulk import / overwrite games
-app.post('/api/games/import', (req, res) => {
+app.post('/api/games/import', async (req, res) => {
     const importedGames = req.body;
     if (!Array.isArray(importedGames)) {
         return res.status(400).json({ error: 'Import data must be an array' });
     }
     
-    const games = readGames();
+    const games = await readGames();
     let addedCount = 0;
     let updatedCount = 0;
     
     importedGames.forEach(importedGame => {
-        if (!importedGame.name) return; // Skip invalid entries
+        if (!importedGame.name) return;
         
         const existingIndex = games.findIndex(g => g.name.toLowerCase() === importedGame.name.toLowerCase());
         const sanitized = sanitizeGame(importedGame);
         
         if (existingIndex !== -1) {
-            // Keep the original ID and addedAt timestamp
             sanitized.id = games[existingIndex].id;
             sanitized.addedAt = games[existingIndex].addedAt || sanitized.addedAt;
             games[existingIndex] = sanitized;
@@ -227,15 +275,15 @@ app.post('/api/games/import', (req, res) => {
         }
     });
     
-    if (writeGames(games)) {
+    if (await writeGames(games)) {
         res.json({ success: true, addedCount, updatedCount, games });
     } else {
-        res.status(500).json({ error: 'Failed to save imported games to database' });
+        res.status(500).json({ error: 'Failed to save imported games' });
     }
 });
 
 // 7b. Full database restore (replaces all games)
-app.post('/api/games/restore', (req, res) => {
+app.post('/api/games/restore', async (req, res) => {
     const gamesToRestore = req.body;
     if (!Array.isArray(gamesToRestore)) {
         return res.status(400).json({ error: 'Restore data must be an array' });
@@ -243,13 +291,12 @@ app.post('/api/games/restore', (req, res) => {
     
     const sanitizedGames = gamesToRestore.map(g => sanitizeGame(g));
     
-    if (writeGames(sanitizedGames)) {
+    if (await writeGames(sanitizedGames)) {
         res.json({ success: true, count: sanitizedGames.length, games: sanitizedGames });
     } else {
         res.status(500).json({ error: 'Failed to write restore data' });
     }
 });
-
 
 // 8. Admin login validation
 app.post('/api/auth/login', (req, res) => {
@@ -269,10 +316,15 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`==================================================`);
-    console.log(`  GameVault Backend Server running on port ${PORT}`);
-    console.log(`  Access dashboard: http://localhost:${PORT}`);
-    console.log(`==================================================`);
-});
+// Start Server locally if not running on Netlify
+if (!IS_NETLIFY) {
+    app.listen(PORT, () => {
+        console.log(`==================================================`);
+        console.log(`  GameVault Backend Server running on port ${PORT}`);
+        console.log(`  Access dashboard: http://localhost:${PORT}`);
+        console.log(`==================================================`);
+    });
+}
+
+// Export app for serverless function use
+module.exports = app;
