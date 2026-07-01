@@ -6,7 +6,14 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+if (ADMIN_PASSWORD.startsWith('"') && ADMIN_PASSWORD.endsWith('"')) {
+    ADMIN_PASSWORD = ADMIN_PASSWORD.slice(1, -1);
+}
+if (ADMIN_PASSWORD.startsWith("'") && ADMIN_PASSWORD.endsWith("'")) {
+    ADMIN_PASSWORD = ADMIN_PASSWORD.slice(1, -1);
+}
+ADMIN_PASSWORD = ADMIN_PASSWORD.trim();
 
 // Enable CORS and JSON parsing
 app.use(cors());
@@ -308,8 +315,9 @@ apiRouter.post('/games/restore', async (req, res) => {
 
 // 8. Admin login validation
 apiRouter.post('/auth/login', (req, res) => {
-    const { password } = req.body;
-    if (password === ADMIN_PASSWORD) {
+    const { password } = req.body || {};
+    const cleanPassword = password ? password.trim() : '';
+    if (cleanPassword === ADMIN_PASSWORD) {
         res.json({ success: true, isAdmin: true });
     } else {
         res.status(401).json({ success: false, error: 'Incorrect password' });
